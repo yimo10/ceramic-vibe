@@ -1,0 +1,222 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
+  <meta name="theme-color" content="#d8bfa5" />
+  <title>手势陶艺 · 创作</title>
+  <link rel="stylesheet" href="/src/style.css" />
+</head>
+<body class="studio" data-title-key="studio.title">
+  <main id="stage">
+    <canvas id="gl"></canvas>
+    <canvas id="overlay"></canvas>
+  </main>
+
+  <header class="topbar">
+    <a class="btn panel-btn" href="./" data-i18n="nav.back">← 陶柜</a>
+    <span class="grow"></span>
+    <button id="btnView" class="btn panel-btn" type="button" data-i18n="view.reset" data-i18n-title="view.hint">重置视角</button>
+    <button id="btnMix" class="btn panel-btn" type="button" aria-label="Volume">🎚</button>
+    <button id="btnSound" class="btn panel-btn" type="button" aria-label="Sound">🔊</button>
+    <button id="btnLang" class="btn panel-btn" type="button">EN</button>
+  </header>
+
+  <!-- [v5] craft timeline: collapsible; Free creation (original) or Ancient craft (the real process, step by step) -->
+  <section id="timeline" class="timeline panel" aria-label="Craft timeline">
+    <div class="tl-head">
+      <div class="seg" role="radiogroup">
+        <button id="modeFree" class="segb" role="radio" type="button" data-i18n="tl.free">自由创作</button>
+        <button id="modeAncient" class="segb" role="radio" type="button" data-i18n="tl.ancient">古法制瓷</button>
+      </div>
+      <b class="tl-fixed" data-i18n="tl.ancient">古法制瓷</b>
+      <span id="tlCur" class="tl-cur"></span>
+      <button id="tlToggle" class="tl-toggle" type="button" aria-expanded="true" aria-controls="tlBody" data-i18n-title="tl.toggle">▾</button>
+    </div>
+    <div id="tlBody" class="tl-body">
+      <ol id="tlSteps" class="tl-steps"></ol>
+      <div id="tlProg" class="tl-prog" hidden><i id="tlProgBar"></i></div>
+      <p id="tlHint" class="tl-hint"></p>
+    </div>
+  </section>
+  <div id="autoCap" class="autocap panel" hidden>
+    <span id="autoText"></span>
+    <div class="kbar"><i id="autoBar"></i></div>
+    <button id="autoSkip" class="btn" type="button" data-i18n="kiln.skip">跳过</button>
+  </div>
+
+  <!-- Camera window: draggable, resizable, never covers the pot or the other panels at start -->
+  <section id="camwin" class="panel camwin" aria-label="Camera">
+    <div class="camhead" id="camhead">
+      <span data-i18n="cam.title">摄像头</span>
+      <span class="grow"></span>
+      <button id="camsize" class="mini" type="button" data-i18n-title="cam.size">⤢</button>
+    </div>
+    <div class="camview" id="camview">
+      <div class="camflip mirrored" id="camflip">
+        <video id="cam" playsinline muted autoplay></video>
+        <canvas id="camsk"></canvas>
+      </div>
+      <div class="camoff" id="camoff" data-i18n="cam.off">摄像头未开启</div>
+      <div class="camchip" id="camChip"></div>
+    </div>
+    <div class="camstatus" id="camStatus" aria-live="polite"></div>
+    <label class="field">
+      <span data-i18n="cam.device">摄像头设备</span>
+      <select id="camSelect" disabled></select>
+    </label>
+    <div class="row">
+      <button id="camOpen" class="btn primary" type="button" data-i18n="cam.open">打开摄像头</button>
+      <button id="camClose" class="btn" type="button" data-i18n="cam.close" disabled>关闭摄像头</button>
+    </div>
+    <label class="check">
+      <input type="checkbox" id="mirror" checked />
+      <span data-i18n="cam.mirror">镜像</span>
+    </label>
+    <p class="note" data-i18n="cam.privacy"></p>
+  </section>
+
+  <aside id="side" class="panel side">
+    <div id="secGlaze" class="sec">
+      <h3 data-i18n="glaze.title">颜料</h3>
+      <div id="swatches" role="radiogroup"></div>
+      <div id="brushRow" class="range">
+        <label for="brushSize"><span data-i18n="glaze.brush">笔刷大小</span> <i id="brushDot" class="bdot"></i></label>
+        <input id="brushSize" type="range" min="0.006" max="0.26" step="0.002" value="0.11" />
+      </div>
+      <div id="opacityRow" class="range">
+        <label for="brushOpacity"><span data-i18n="glaze.opacity">笔刷浓度（不透明度）</span> <b id="opacityVal">100%</b></label>
+        <input id="brushOpacity" type="range" min="0.05" max="1" step="0.01" value="1" />
+      </div>
+      <div id="brushReliefRow" class="relief-row"><span class="rl" data-i18n="relief.title">立体效果</span><span class="relief-seg"><button type="button" data-r="flat" data-i18n="relief.flat">平</button><button type="button" data-r="convex" data-i18n="relief.convex">凸</button><button type="button" data-r="concave" data-i18n="relief.concave">凹</button></span></div>
+    </div>
+
+    <div id="secTexture" class="sec" hidden>
+      <h3 data-i18n="decor.texture">质感</h3>
+      <div id="texOpacityRow" class="range">
+        <label for="texOpacity"><span data-i18n="tex.opacity">质感浓度（不透明度）</span> <b id="texOpacityVal">100%</b></label>
+        <input id="texOpacity" type="range" min="0.05" max="1" step="0.01" value="1" />
+      </div>
+      <div id="gBrushRow" class="range">
+        <label for="gBrush"><span data-i18n="tex.brush">釉刷大小</span></label>
+        <input id="gBrush" type="range" min="0.006" max="0.26" step="0.002" value="0.11" />
+      </div>
+      <p class="note" data-i18n="tex.paintHint">先选一种釉，再用画笔把它刷到器物上；质感只会出现在刷过的地方。</p>
+      <div id="texList" class="list"></div>
+      <p class="note" data-i18n="texture.note"></p>
+      <p id="texAncientNote" class="note warn" data-i18n="tl.glazenote" hidden></p>
+      <div id="texColors" class="minicolors"></div>
+    </div>
+
+    <div id="secPattern" class="sec" hidden>
+      <h3 data-i18n="ornament.patterns">纹样</h3>
+      <div id="patCats" class="cats"></div>
+      <div id="patGrid" class="pgrid"></div>
+      <div class="range"><label for="patScale"><span data-i18n="pattern.scale">纹样大小</span></label>
+        <input id="patScale" type="range" min="0.08" max="0.5" step="0.01" value="0.2" /></div>
+      <div class="range"><label for="patDensity"><span data-i18n="pattern.density">密度</span></label>
+        <input id="patDensity" type="range" min="0.5" max="3" step="0.05" value="1.5" /></div>
+      <div id="patReliefRow" class="relief-row"><span class="rl" data-i18n="relief.title">立体效果</span><span class="relief-seg"><button type="button" data-r="flat" data-i18n="relief.flat">平</button><button type="button" data-r="convex" data-i18n="relief.convex">凸</button><button type="button" data-r="concave" data-i18n="relief.concave">凹</button></span></div>
+      <p class="note" data-i18n="pattern.ink"></p>
+      <div id="patColors" class="minicolors" hidden></div>
+    </div>
+
+    <div id="sec3d" class="sec" hidden>
+      <h3 data-i18n="ornament.3d">立体小饰品</h3>
+      <div id="ornTray" class="tray"></div>
+      <div class="range"><label for="ornScale"><span data-i18n="orn.size">大小</span></label>
+        <input id="ornScale" type="range" min="0.5" max="2.2" step="0.05" value="1" /></div>
+      <div class="row">
+        <button id="ornRotL" class="btn" type="button" data-i18n-title="orn.rotL">⟲</button>
+        <button id="ornRotR" class="btn" type="button" data-i18n-title="orn.rotR">⟳</button>
+        <button id="ornDel" class="btn" type="button" data-i18n="orn.delete">删除</button>
+      </div>
+      <p class="note" data-i18n="orn.hint"></p>
+    </div>
+  </aside>
+
+  <div id="subbar" class="subbar panel">
+    <div id="grpShape" class="grp">
+      <button class="btn tool" id="toolPush" type="button" data-i18n="tool.push">按压</button>
+      <button class="btn tool" id="toolPull" type="button" data-i18n="tool.pull">拉伸</button>
+      <button class="btn tool" id="toolLift" type="button" data-i18n="tool.lift">提拉</button>
+      <span class="sep"></span>
+      <span class="lbl" data-i18n="preset.title">基础形状</span>
+      <div id="presets" class="presets"></div>
+    </div>
+    <div id="grpDecor" class="grp" hidden>
+      <button class="btn tool" id="tabTexture" type="button" data-i18n="decor.texture">质感</button>
+      <button class="btn tool" id="tab3d" type="button" data-i18n="ornament.3d">立体小饰品</button>
+    </div>
+    <div id="grpPaint" class="grp" hidden>
+      <button class="btn tool" id="tabBrush" type="button" data-i18n="paint.brush">画笔</button>
+      <button class="btn tool" id="tabPattern" type="button" data-i18n="ornament.patterns">纹样</button>
+    </div>
+  </div>
+
+  <nav class="toolbar panel" id="toolbar">
+    <button class="btn stage" id="stShape" type="button" data-i18n="stage.shape">塑形</button>
+    <button class="btn stage" id="stGlaze" type="button" data-i18n="stage.glaze">彩绘</button>
+    <button class="btn stage" id="stDecor" type="button" data-i18n="stage.decor">装饰</button>
+    <span class="sep"></span>
+    <button class="btn" id="btnPause" type="button">转盘 ⏸</button>
+    <button class="btn" id="btnUndo" type="button" data-i18n="undo" disabled>撤销</button>
+    <button class="btn" id="btnReset" type="button" data-i18n="reset">重来</button>
+    <button class="btn" id="btnHelp" type="button" data-i18n="help">说明</button>
+    <button class="btn" id="btnPrev" type="button" data-i18n="tl.prev" hidden>上一步</button>
+    <button class="btn primary" id="btnNext" type="button" hidden></button>
+    <button class="btn primary" id="btnSave" type="button" data-i18n="save">保存</button>
+  </nav>
+
+  <div id="toast" class="toast" role="status"></div>
+  <div class="rotate" data-i18n="rotate.hint">请将设备横屏使用</div>
+
+  <dialog id="saveDlg">
+    <h2 data-i18n="save.title">保存作品</h2>
+    <img id="savePreview" alt="" />
+    <label class="field">
+      <span data-i18n="save.name">作品名称</span>
+      <input id="saveName" type="text" maxlength="24" data-i18n-placeholder="save.placeholder" />
+    </label>
+    <div class="row wrap">
+      <button class="btn primary" id="saveGallery" type="button"></button>
+      <button class="btn" id="saveCopy" type="button" data-i18n="save.asNew" hidden>另存为新作品</button>
+      <button class="btn" id="savePng" type="button" data-i18n="save.png">下载图片</button>
+      <button class="btn" id="saveCancel" type="button" data-i18n="common.cancel">取消</button>
+    </div>
+  </dialog>
+
+  <!-- [v3] kiln animation, then the finished picture with the QR code -->
+  <dialog id="kilnDlg" class="kiln">
+    <div id="kilnStage" class="kstage">
+      <canvas id="kilnCanvas" width="1440" height="900"></canvas>
+      <div class="kcap"><span id="kilnText"></span> <b id="kilnTemp"></b></div>
+      <div class="kbar"><i id="kilnBar"></i></div>
+      <button id="kilnSkip" class="btn" type="button" data-i18n="kiln.skip">跳过</button>
+    </div>
+    <div id="kilnResult" class="kres" hidden>
+      <img id="kilnImg" alt="" />
+      <div class="kside">
+        <h2 data-i18n="kiln.done">出窑啦！</h2>
+        <p id="kilnNote"></p>
+        <div class="row wrap">
+          <a id="kilnDownload" class="btn primary" download="pottery.png" data-i18n="kiln.download">下载图片</a>
+          <a class="btn" href="./" data-i18n="kiln.pool">回到陶柜</a>
+          <button id="kilnClose" class="btn" type="button" data-i18n="kiln.more">继续创作</button>
+        </div>
+      </div>
+    </div>
+  </dialog>
+
+  <dialog id="consentDlg">
+    <h2 data-i18n="consent.title">允许使用摄像头？</h2>
+    <p data-i18n="consent.body"></p>
+    <div class="row">
+      <button class="btn primary" id="consentAllow" type="button" data-i18n="consent.allow">允许并打开</button>
+      <button class="btn" id="consentCancel" type="button" data-i18n="common.cancel">取消</button>
+    </div>
+  </dialog>
+
+  <script type="module" src="/src/studio.js"></script>
+</body>
+</html>

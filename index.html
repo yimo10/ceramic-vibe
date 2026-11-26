@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
+  <meta name="theme-color" content="#2a1c2e" />
+  <title>陶柜 · 手势陶艺</title>
+  <link rel="stylesheet" href="/src/style.css" />
+</head>
+<body class="cabinet" data-title-key="app.title">
+  <header class="cab-nav">
+    <a class="cab-brand" href="./" data-i18n="brand">陶柜</a>
+    <span class="grow"></span>
+    <button id="btnAbout" class="pxb" type="button" data-i18n="nav.about">关于</button>
+    <button id="btnMsg" class="pxb" type="button" data-i18n="nav.message">留言</button>
+    <button id="btnMix" class="pxb" type="button" aria-label="Volume">🎚</button>
+    <button id="btnSound" class="pxb" type="button"></button>
+    <button id="btnLang" class="pxb" type="button">EN</button>
+  </header>
+
+  <!-- the endless cabinet: rows of glass compartments are added below as you scroll -->
+  <main id="cab" class="cab" aria-label="Pottery cabinet">
+    <div class="cab-body">
+      <div class="cab-crown"><b data-i18n="brand">陶柜</b></div>
+      <div id="shelves" class="shelves"></div>
+      <div id="sentinel" class="sentinel"></div>
+    </div>
+  </main>
+
+  <a id="btnCreate" class="px-cta" href="studio.html" data-i18n="nav.create">创作陶艺</a>
+
+  <dialog id="preview">
+    <h2 id="pvName"></h2>
+    <img id="pvImg" alt="" />
+    <p id="pvMeta" style="font-size:12px;opacity:.75"></p>
+    <div class="row wrap">
+      <a id="pvEdit" class="btn primary" href="studio.html" data-i18n="preview.edit">再次编辑</a>
+      <button id="pvDelete" class="btn" type="button" data-i18n="preview.delete">删除</button>
+      <button id="pvClose" class="btn" type="button" data-i18n="common.close">关闭</button>
+    </div>
+  </dialog>
+
+  <dialog id="aboutDlg" class="sheet">
+    <h2 data-i18n="about.title">关于陶柜</h2>
+    <p data-i18n="about.body"></p>
+    <p data-i18n="about.tips"></p>
+    <div class="row wrap">
+      <button id="btnExport" class="btn" type="button" data-i18n="about.export">导出作品</button>
+      <button id="btnImport" class="btn" type="button" data-i18n="about.import">导入作品</button>
+      <button class="btn primary" type="button" data-close="aboutDlg" data-i18n="common.close">关闭</button>
+    </div>
+    <input id="importFile" type="file" accept="application/json,.json" hidden />
+    <p id="aboutMsg" style="margin:10px 0 0;font-size:12px"></p>
+  </dialog>
+
+  <dialog id="msgDlg" class="sheet">
+    <h2 data-i18n="msg.title">给我留言</h2>
+    <textarea id="msgText" rows="4" maxlength="500" data-i18n-placeholder="msg.placeholder"></textarea>
+    <p id="msgNote" style="font-size:12px;opacity:.75;margin:8px 0 12px"></p>
+    <div class="row">
+      <button id="msgSend" class="btn primary" type="button" data-i18n="msg.send">发送</button>
+      <button class="btn" type="button" data-close="msgDlg" data-i18n="common.close">关闭</button>
+    </div>
+  </dialog>
+
+  <script type="module" src="/src/gallery.js"></script>
+</body>
+</html>

@@ -1,0 +1,20 @@
+{
+  "name": "gesture-pottery",
+  "private": true,
+  "version": "4.15.1",
+  "type": "module",
+  "scripts": {
+    "prepare-assets": "node scripts/prepare-assets.mjs",
+    "dev": "npm run prepare-assets && vite",
+    "build": "npm run prepare-assets && vite build",
+    "preview": "vite preview",
+    "serve": "node server/server.mjs"
+  },
+  "dependencies": {
+    "@mediapipe/tasks-vision": "^0.10.21",
+    "three": "^0.170.0"
+  },
+  "devDependencies": {
+    "vite": "^5.4.11"
+  }
+}
